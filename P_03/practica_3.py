@@ -21,77 +21,68 @@ def f2(x, y):  # f(x,y) = (x-2)^2+(y-2)^2
 
 
 RANGO = 50
-# -POBLACION = 10
 
 # Grafica primera función-----------------------------------------
-
-# x,y son arreglos de 50 números en el rango (-2,2)
-
-
 def grafica1(px, py):
-    x = np.linspace(-2, 2, RANGO)
+    x = np.linspace(-2, 2, RANGO)    # x,y son arreglos de 50 números en el rango (-2,2)
     y = np.linspace(-2, 2, RANGO)
 
-    # Regresa una matriz coordenada de los vectores x,y
-    X, Y = np.meshgrid(x, y)
-    # vectorize Permite que la función f(x) reciba como parámetros los vectores x,y
-    Z = np.vectorize(f)
-    ax = plt.axes(projection='3d')
-    # Dibuja la gráfica de f(x,y)
-    ax.contour3D(X, Y, Z(X, Y), RANGO, cmap='binary')
+    X, Y = np.meshgrid(x, y)    # Regresa una matriz coordenada de los vectores x,y
+    
+    Z = np.vectorize(f)     # vectorize Permite que la función f(x,y) reciba como parámetros los vectores x,y
+    ax = plt.axes(projection='3d')  # Dibuja la gráfica de f(x,y)
+    
+    ax.contour3D(X, Y, Z(X, Y), RANGO, cmap='binary')   # Dibuja la gráfica de f(x,y)
 
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
     for i in range(POBLACION):
-        ax.scatter3D(px[i], py[i], f(px[i], py[i]))
+        ax.scatter3D(px[i], py[i], f(px[i], py[i]))     # Dibuja la población en la grafica
     plt.show()
 
 
+# Grafica segunda función-----------------------------------------
 def grafica2(px, py):
-    x = np.linspace(-2, 6, RANGO)
+    x = np.linspace(-2, 6, RANGO)   # x,y son arreglos de 50 números en el rango (-2,6)
     y = np.linspace(-2, 6, RANGO)
-
-    # Regresa una matriz coordenada de los vectores x,y
-    X, Y = np.meshgrid(x, y)
-    # vectorize Permite que la función f(x) reciba como parámetros los vectores x,y
-    Z = np.vectorize(f2)
+    
+    X, Y = np.meshgrid(x, y)    # Regresa una matriz coordenada de los vectores x,y
+    
+    Z = np.vectorize(f2)    # vectorize Permite que la función f2(x,y) reciba como parámetros los vectores x,y
     ax = plt.axes(projection='3d')
-    # Dibuja la gráfica de f(x,y)
-    ax.contour3D(X, Y, Z(X, Y), RANGO, cmap='binary')
+    
+    ax.contour3D(X, Y, Z(X, Y), RANGO, cmap='binary')   # Dibuja la gráfica de f(x,y)
 
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
     for i in range(POBLACION):
-        ax.scatter3D(px[i], py[i], f2(px[i], py[i]))
+        ax.scatter3D(px[i], py[i], f2(px[i], py[i]))    # Dibuja la población en la grafica
     plt.show()
 
-
-def inicializacion(xl, xu):
-    x = np.zeros(POBLACION)
+# Inicializacion---------------------------------------------------
+def inicializacion():
+    x = np.zeros(POBLACION)      # x,y son vectores del tamaño de la poblacion
     y = np.zeros(POBLACION)
     for i in range(POBLACION):
-        x[i] = xl+(xu-xl)*random.uniform(0, 1)
+        x[i] = xl+(xu-xl)*random.uniform(0, 1)       # xi = xl +(xu - xl)ri
         y[i] = xl+(xu-xl)*random.uniform(0, 1)
     return x, y
 
 
-# -X, Y = inicializacion(-2, 2, POBLACION)
 # Aptitud------------------------------------------------
 def aptitudF1():
     for i in range(POBLACION):
-        fxi = f(X[i], Y[i])
-        if fxi >= 0:
-            apt[i] = 1/(1+fxi)
+        fxi = f(X[i], Y[i])     # f(xi)
+        if fxi >= 0:    
+            apt[i] = 1/(1+fxi)     # aptitudi(xi) = 1/(1 + f(xi))
         else:
-            apt[i] = 1+math.fabs(fxi)
+            apt[i] = 1+math.fabs(fxi)   # aptitudi(xi) = 1 + |f(xi)|
 
-# Aptitud------------------------------------------------
-
-
+# Aptitud para la función 2-----------------------------------------------
 def aptitudF2():
     for i in range(POBLACION):
         fxi = f2(X[i], Y[i])
@@ -100,112 +91,119 @@ def aptitudF2():
         else:
             apt[i] = 1+math.fabs(fxi)
 
-# -aptitudF1()
+
 # Seleccion----------------------------------------------
-
-
 def seleccion():
     aptTotal = 0
     for i in range(POBLACION):
-        aptTotal += apt[i]
+        aptTotal += apt[i]          # aptitudTotal = aptitudTotal + aptitudI
     pi = np.zeros(POBLACION)
     for i in range(POBLACION):
-        pi[i] = apt[i]/aptTotal
-    r = random.uniform(0, 1)
+        pi[i] = apt[i]/aptTotal     # pi = aptitudI / aptitudTotal
+    r = random.uniform(0, 1)      
     pSum = 0
     for i in range(POBLACION):
-        pSum = pSum+pi[i]
+        pSum = pSum+pi[i]           
         if pSum >= r:
-            seleccion = i
+            seleccion = i           # Se selecciona individuo i como padre
             return seleccion
     return seleccion
 
-
+# Cruza---------------------------------------------------
 def cruza():
     cont = 0
-    for i in range(POBLACION/2):
+    for i in range(POBLACION/2):    # En cada iteracion se crean dos hijos nuevos
         while True:
-            select1 = seleccion()
+            select1 = seleccion()   # Selección de ambos padres
             select2 = seleccion()
-            if select1 != select2:
+            if select1 != select2:  # Mientras que los padres no sean el mismo individuo
                 break
         padre1 = [X[select1], Y[select1]]
         padre2 = [X[select2], Y[select2]]
-        pc = random.randint(1, 2)
-        #print 'pc= ',pc
-        if pc == 1:
-            X[cont] = padre1[0]
-            Y[cont] = padre2[1]
+        pc = random.randint(1, 2)   # pc = {1,D} D=2
+        if pc == 1:                 # Si el punte de cruce es 1:
+            X[cont] = padre1[0]     # El primer hijo toma la primer parte del padre1
+            Y[cont] = padre2[1]     # y la segunda del padre2
             cont += 1
-            X[cont] = padre2[0]
+            X[cont] = padre2[0]     # El segundo hijo toma la primer parte del padre2
+            Y[cont] = padre1[1]     # y la segunda del padre1
+            cont += 1
+        else:                       # Si el punte de cruce es 2:
+            X[cont] = padre1[0]     # El primer hijo es idéntico al padre1
             Y[cont] = padre1[1]
             cont += 1
-        else:
-            X[cont] = padre1[0]
-            Y[cont] = padre1[1]
-            cont += 1
-            X[cont] = padre2[0]
+            X[cont] = padre2[0]     # El segundo hijo es idéntico al padre2
             Y[cont] = padre2[1]
             cont += 1
 
-
-# -cruzaF1()
-def mutacion(xl, xu):
-    pm = 0.01
+# Mutación--------------------------------------------------
+def mutacion():
+    pm = 0.01                       # Probablilidad de mutacion = 0.01
     for i in range(POBLACION):
         ra = random.uniform(0, 1)
         if ra < pm:
-            X[i] = xl+(xu-xl)*random.uniform(0, 1)
+            X[i] = xl+(xu-xl)*random.uniform(0, 1)  # yij = xij + (xuj - xij)*rb
         ra = random.uniform(0, 1)
         if ra < pm:
             Y[i] = xl+(xu-xl)*random.uniform(0, 1)
 
-# -mutacion(-2,2,POBLACION)
 
+# Algoritmo GA--------------------------------------------------
+# Primera función
+POBLACION = 200     # Definir la poblacion total
 
-POBLACION = 200
+xl=-2
+xu=2
+X, Y = inicializacion()     # inicializa N padres dentro de los limites
 
+apt = np.zeros(POBLACION)   # inicializa arreglo de apritudes
 
-X, Y = inicializacion(-2, 2)
+for i in range(100):        # 100 generaciones
+    aptitudF1()             # Calcula la aptitud de cada individuo
+    cruza()                 # Cruza de padres y creacion de hijos
+    mutacion()              # Mutacion aleatoria de individuos nuevos
+    
+    if(i % 20 == 0):        # Cada 20 generaciones se muestra la gráfica
+        grafica1(X,Y)
 
-apt = np.zeros(POBLACION)
-for i in range(100):
-    aptitudF1()
-    cruza()
-    mutacion(-2, 2)
-    #if(i % 20 == 0):
-        # grafica1(X,Y)
-aptitudF1()
+aptitudF1()     # Al terminar las generaciones se actualiza el vectro de aptitud
 mejor = 0
 im = 0
 for i in range(POBLACION):
-    if apt[i] > mejor:
-        mejor = apt[i]
+    if apt[i] > mejor:      # Encuentra la mejor aptitud
+        mejor = apt[i]      
         im = i
 print "Mayor aptitud: "
-print 'x= ', X[im], 'y= ', Y[im], 'f(x,y)= ', f(X[im], Y[im])
+print 'x= ', X[im], 'y= ', Y[im], 'f(x,y)= ', f(X[im], Y[im])   # Imprime en consola el punto con mayor aptitud
 
-grafica1(X, Y)
-# Muestra gráfica
+grafica1(X, Y) # Muestra gráfica de la última generación
 
-X, Y = inicializacion(-2, 6)
+# Algoritmo GA--------------------------------------------------
+# Segunda función
 
-apt = np.zeros(POBLACION)
 
-for i in range(100):
-    aptitudF2()
-    cruza()
-    mutacion(-2,6)
-    if(i%20==0):
+xl=-2
+xu=6
+X, Y = inicializacion()     # inicializa N padres dentro de los limites
+
+apt = np.zeros(POBLACION)   # inicializa arreglo de apritudes
+
+for i in range(100):        # 100 generaciones
+    aptitudF2()             # Calcula la aptitud de cada individuo
+    cruza()                 # Cruza de padres y creacion de hijos
+    mutacion()              # Mutacion aleatoria de individuos nuevos
+
+    if(i%20==0):            # Cada 20 generaciones se muestra la gráfica
         grafica2(X,Y)
-aptitudF2()
+        
+aptitudF2()     # Al terminar las generaciones se actualiza el vectro de aptitud
 mejor = 0
 im = 0
 for i in range(POBLACION):
-    if apt[i] > mejor:
+    if apt[i] > mejor:      # Encuentra la mejor aptitud
         mejor = apt[i]
         im = i
 print "Mayor aptitud: "
-print 'x= ', X[im], 'y= ', Y[im], 'f(x,y)= ', f2(X[im], Y[im])
+print 'x= ', X[im], 'y= ', Y[im], 'f(x,y)= ', f2(X[im], Y[im])  # Imprime en consola el punto con mayor aptitud
 
-grafica2(X, Y)
+grafica2(X, Y)      # Muestra gráfica de la última generación
