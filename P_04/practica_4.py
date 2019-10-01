@@ -25,7 +25,7 @@ def grafica1(vX):
     b = np.linspace(-2, 2, RANGO)
 
     x,y = np.meshgrid(a, b)    # Regresa una matriz coordenada de los vectores x,y
-    
+    print x
     Z = np.vectorize(f)     # vectorize Permite que la función f(x,y) reciba como parámetros los vectores x,y
     ax = plt.axes(projection='3d')  # Dibuja la gráfica de f(x,y)
     
