@@ -8,7 +8,7 @@ from mpl_toolkits import mplot3d
 
 # Méndez Pérez Emmanuel
 # I7039 D04
-# Práctica 8
+# Práctica 9
 # Desarrollado en Python 2.7
 
 
@@ -134,28 +134,24 @@ def grafica(num, vX):
 RANGO = 50
 D = 2
 
-POBLACION = 30
-GENERACIONES = 20
 
-X = np.zeros((2, POBLACION))  # Individuos
+POBLACION = 50
+GENERACIONES = 150
+
+X = np.zeros((2, POBLACION))  # Individuos (flores)
 
 xl = np.array([-10, -10])  # límite inferior
 xu = np.array([10, 10])  # Límite superior
 
+LAMBDA = 1.5  # Parámetro de ajueste del paso
 
-def promedioX(j):   #
-    sum = 0
-    for k in range(POBLACION):
-        sum += X[j, k]
-    return sum/POBLACION
+SIGMA2 = 0.6966  # Varianza
+
+p = 0.8  # Probabilidad de polinización global y local
 
 
 def rand():  # Genera vector de números random
     return random.uniform(0, 1), random.uniform(0, 1)
-
-
-def randTf():  # Genera vector de números random {1,2} factor de enseñanza
-    return random.randint(1, 2), random.randint(1, 2)
 
 
 def mejorPosicion(num):  # Encuentra individuo con mejor posición
@@ -168,54 +164,43 @@ def mejorPosicion(num):  # Encuentra individuo con mejor posición
 
 def inicializa():
     for i in range(POBLACION):
-        X[:, i] = xl+(xu-xl)*rand()  # Inicializa fuentes aleatoriamente
+        X[:, i] = xl+(xu-xl)*rand()  # Inicializa flores aleatoriamente
 
 
-def faseEnsenanza(num, i):
-    t = mejorPosicion(num)
-    Xt = np.array(X[:, t])  # Selección del maestro
-    Tf = randTf()  # Tf = random [0,1]
-    c = np.array([0, 0])
-    for j in range(D-1):
-        promXj = promedioX(j)  # xj
-        r = random.uniform(0, 1)  # random [0,1]
-        c[j] = X[j, i]+r*(Xt[j]-Tf[j]*promXj)  # cij = xij + r*(xtj-Tfxj)
-    if f(num, c[0], c[1]) < f(num, X[0, i], X[1, i]):  # Si f(ci) < f(xi)
-        X[:, i] = c  # xi = ci
+def VueloDeLevy():
+    u = np.random.normal(0, SIGMA2)  # u~N(0,sigma2)
+    v = np.random.normal(0, 1)  # v~N(0,1)
+    l = u/(math.pow(math.fabs(v), (1/LAMBDA)))  # L=u/(|v|^1/lambda)
+    return l
 
 
-def faseAprendizaje(num, i):
-    while(True):
-        k = random.randint(0, POBLACION-1)  # Número aleatorio  tal que i!=k
-        if k != i:
-            break
-    c = np.array([0, 0])
-    if f(num, X[0, i], X[1, i]) < f(num, X[0, k], X[1, k]):  # Si f(xi) < f(xk)
-        for j in range(D-1):
-            r = random.uniform(0, 1)  # r = random [0,1]
-            c[j] = X[j, i]+r*(X[j, i]-X[j, k])  # cij = xij + r*(xij-xkj)
-    else:
-        for j in range(D-1):
-            r = random.uniform(0, 1)  # r = random [0,1]
-            c[j] = X[j, i]+r*(X[j, k]-X[j, i])  # cij = xij + r*(xkj-xij)
-    if f(num, c[0], c[1]) < f(num, X[0, i], X[1, i]):   # Si f(ci) < f(xi)
-        X[:, i] = c  # xi = ci
-
-
-def algoritmoTLBO(num):
+def AlgoritmoFPA(num):
     inicializa()
-    for j in range(GENERACIONES):
-        if(j % 10 == 0):
-            print "Generacion: ", j
-            grafica(num, X)  # Grafíca cada 10 Generaciones
+    for a in range(GENERACIONES):
+        if(a % 75 == 0):
+            print "Generacion: ", a
+            grafica(num, X)  # Grafíca cada 75 Generaciones
+        g = mejorPosicion(num)  # Selección del mejor global
         for i in range(POBLACION):
-            faseEnsenanza(num, i)
-            faseAprendizaje(num, i)
+            r = random.uniform(0, 1)
+            if r < p:
+                L = VueloDeLevy()
+                yi = X[:, i] + L*(X[:, i]-X[:, g])  # yi = xi + L(xi-xg)
+            else:
+                e = random.uniform(0, 1)
+                while(True):
+                    j = random.randint(0, POBLACION-1)
+                    k = random.randint(0, POBLACION-1)
+                    if k != i and k != j and j != i:  # j!=k!=i
+                        break
+                yi = X[:, i] + e*(X[:, j]-X[:, k])  # yi = xi +e(xj-xk)
+            if f(num, yi[0], yi[1]) < f(num, X[0, i], X[1, i]):  # si f(yi)<f(xi)
+                X[:, i] = yi  # xi=yi
 
 
-algoritmoTLBO(1)
+AlgoritmoFPA(1)
 b = mejorPosicion(1)
-print "Generacion: 20"
+print "Generacion: 150"
 print "Griewank function: "
 # Imprime la mejor posición global de la última generación
 print("X: ", X[0, b], "Y: ", X[1, b],
@@ -223,18 +208,19 @@ print("X: ", X[0, b], "Y: ", X[1, b],
 grafica(1, X)
 
 
-algoritmoTLBO(2)
+AlgoritmoFPA(2)
 b = mejorPosicion(2)
-print "Generacion: 20"
+print "Generacion: 150"
 print "Sphere function: "
 # Imprime la mejor posición global de la última generación
 print("X: ", X[0, b], "Y: ", X[1, b],
       "F(x,y): ", f(2, X[0, b], X[1, b]))
 grafica(2, X)
 
-algoritmoTLBO(3)
+
+AlgoritmoFPA(3)
 b = mejorPosicion(3)
-print "Generacion: 20"
+print "Generacion: 150"
 print "Rastrigin function: "
 # Imprime la mejor posición global de la última generación
 print("X: ", X[0, b], "Y: ", X[1, b],
