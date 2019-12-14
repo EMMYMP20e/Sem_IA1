@@ -1,14 +1,13 @@
 import math
-import sympy
 import random
-import numpy as np
+import Numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
 from mpl_toolkits import mplot3d
 
 # Méndez Pérez Emmanuel
 # I7039 D04
-# Práctica 8
+# Práctica 10
 # Desarrollado en Python 2.7
 
 
@@ -70,7 +69,7 @@ def grafica1(vX):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
-    for i in range(POBLACION):
+    for i in range(Pf):
         # Dibuja la población en la gráfica
         ax.scatter3D(vX[0, i], vX[1, i], f1(vX[0, i], vX[1, i]))
     plt.show()
@@ -93,7 +92,7 @@ def grafica2(vX):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
-    for i in range(POBLACION):
+    for i in range(Pf):
         # Dibuja la población en la gráfica
         ax.scatter3D(vX[0, i], vX[1, i], f2(vX[0, i], vX[1, i]))
     plt.show()
@@ -116,7 +115,7 @@ def grafica3(vX):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
-    for i in range(POBLACION):
+    for i in range(Pf):
         # Dibuja la población en la gráfica
         ax.scatter3D(vX[0, i], vX[1, i], f3(vX[0, i], vX[1, i]))
     plt.show()
@@ -131,112 +130,122 @@ def grafica(num, vX):
         grafica3(vX)
 
 
-RANGO = 50
-D = 2
-
-POBLACION = 30
-GENERACIONES = 20
-
-X = np.zeros((2, POBLACION))  # Individuos
-
-xl = np.array([-10, -10])  # límite inferior
-xu = np.array([10, 10])  # Límite superior
-
-
-def promedioX(j):   #
-    sum = 0
-    for k in range(POBLACION):
-        sum += X[j, k]
-    return sum/POBLACION
-
-
 def rand():  # Genera vector de números random
     return random.uniform(0, 1), random.uniform(0, 1)
 
 
-def randTf():  # Genera vector de números random {1,2} factor de enseñanza
-    return random.randint(1, 2), random.randint(1, 2)
-
-
 def mejorPosicion(num):  # Encuentra individuo con mejor posición
     best = 0
-    for i in range(POBLACION):
+    for i in range(Pf):
         if f(num, X[0, i], X[1, i]) < f(num, X[0, best], X[1, best]):
             best = i
     return best
 
 
+RANGO = 50
+D = 2
+
+POBLACION = 50
+GENERACIONES = 150
+L = 20
+Pf = 30  # Abejas empleadas
+Po = POBLACION - Pf  # Abejas observadoras
+
+X = np.zeros((2, Pf))  # Fuentes de Alimento
+li = np.zeros(Pf)
+apt = np.zeros(POBLACION)   # inicializa arreglo de aptitudes
+
+xl = np.array([-10, -10])  # límite inferior
+xu = np.array([10, 10])  # Límite superior
+
+
 def inicializa():
-    for i in range(POBLACION):
+    for i in range(Pf):
         X[:, i] = xl+(xu-xl)*rand()  # Inicializa fuentes aleatoriamente
 
 
-def faseEnsenanza(num, i):
-    t = mejorPosicion(num)
-    Xt = np.array(X[:, t])  # Selección del maestro
-    Tf = randTf()  # Tf = random {1,2}
-    c = np.array([0, 0])
-    for j in range(D-1):
-        promXj = promedioX(j)  # xj
-        r = random.uniform(0, 1)  # random [0,1]
-        c[j] = X[j, i]+r*(Xt[j]-Tf[j]*promXj)  # cij = xij + r*(xtj-Tfxj)
-    if f(num, c[0], c[1]) < f(num, X[0, i], X[1, i]):  # Si f(ci) < f(xi)
-        X[:, i] = c  # xi = ci
+def EtapaAbejasEmpleadasAlumnas(num):
+    for i in range(Pf):
+        while(True):
+            k = random.randint(0, Pf-1)  # Número aleatorio  tal que i!=k
+            if k != i:
+                break
+        vi = np.array([0, 0])
+        if f(num, X[0, i], X[1, i]) < f(num, X[0, k], X[1, k]):  # Si f(xi) < f(xk)
+            for j in range(D-1):
+                r = random.uniform(0, 1)  # random [0,1]
+                vi[j] = X[j, i]+r*(X[j, i]-X[j, k])  # cij = xij + r*(xij-xkj)
+        else:
+            for j in range(D-1):
+                r = random.uniform(0, 1)  # random [0,1]
+                vi[j] = X[j, i]+r*(X[j, k]-X[j, i])  # cij = xij + r*(xkj-xij)
+        if f(num, vi[0], vi[1]) < f(num, X[0, i], X[1, i]):  # si f(vi) < f(xi)
+            X[:, i] = vi  # xi = vi
+            li[i] = 0  # li =0
+        else:
+            li[i] += 1  # li = li+1
 
 
-def faseAprendizaje(num, i):
-    while(True):
-        k = random.randint(0, POBLACION-1)  # Número aleatorio  tal que i!=k
-        if k != i:
-            break
-    c = np.array([0, 0])
-    if f(num, X[0, i], X[1, i]) < f(num, X[0, k], X[1, k]):  # Si f(xi) < f(xk)
+def EtapaAbejasObservadorasMaestras(num):
+    m = mejorPosicion(num)
+    for i in range(Po):
+        while(True):
+            k = random.randint(0, Pf-1)  # Número aleatorio  tal que i!=k
+            if k != m:
+                break
+        vm = np.array([0, 0])
         for j in range(D-1):
-            r = random.uniform(0, 1)  # r = random [0,1]
-            c[j] = X[j, i]+r*(X[j, i]-X[j, k])  # cij = xij + r*(xij-xkj)
-    else:
-        for j in range(D-1):
-            r = random.uniform(0, 1)  # r = random [0,1]
-            c[j] = X[j, i]+r*(X[j, k]-X[j, i])  # cij = xij + r*(xkj-xij)
-    if f(num, c[0], c[1]) < f(num, X[0, i], X[1, i]):   # Si f(ci) < f(xi)
-        X[:, i] = c  # xi = ci
+            r = random.uniform(0, 1)  # random [0,1]
+            vm[j] = X[j, m] + r*(X[j, m]-X[j, k])  # vmj = xmj + r*(xmj - xkj)
+        if f(num, vm[0], vm[1]) < f(num, X[0, m], X[1, m]):  # si f(vm) < f(xm)
+            X[:, m] = vm  # xm = vm
+            li[m] = 0  # lm = 0
+        else:
+            li[m] += 1  # lm = lm +1
+
+def EtapaAbejasExploradoras():
+    for i in range(Pf):
+        if li[i] > L:
+            X[:, i] = xl+(xu-xl)*rand()
+            li[i] = 0
 
 
-def algoritmoTLBO(num):
+def AlgoritmoEscuelaDeAbejas(num):
     inicializa()
-    for j in range(GENERACIONES):
-        if(j % 10 == 0):
-            print "Generacion: ", j
-            grafica(num, X)  # Grafíca cada 10 Generaciones
-        for i in range(POBLACION):
-            faseEnsenanza(num, i)
-            faseAprendizaje(num, i)
+    for i in range(GENERACIONES):
+        if(i % 75 == 0):
+            print("Generacion: ", i)
+            grafica(num, X)  # Grafíca cada 75 Generaciones
+        EtapaAbejasEmpleadasAlumnas(num)
+        EtapaAbejasObservadorasMaestras(num)
+        EtapaAbejasExploradoras()
+        
 
 
-algoritmoTLBO(1)
-b = mejorPosicion(1)
-print "Generacion: 20"
-print "Griewank function: "
+AlgoritmoEscuelaDeAbejas(1)
+best = mejorPosicion(1)
+print("Griewank function: ")
 # Imprime la mejor posición global de la última generación
-print("X: ", X[0, b], "Y: ", X[1, b],
-      "F(x,y): ", f(1, X[0, b], X[1, b]))
+print("Generacion: 150")
+print("X: ", X[0, best], "Y: ", X[1, best],
+      "F(x,y): ", f(1, X[0, best], X[1, best]))
+
 grafica(1, X)
 
-
-algoritmoTLBO(2)
-b = mejorPosicion(2)
-print "Generacion: 20"
-print "Sphere function: "
+AlgoritmoEscuelaDeAbejas(2)
+best = mejorPosicion(2)
+print("Sphere function: ")
 # Imprime la mejor posición global de la última generación
-print("X: ", X[0, b], "Y: ", X[1, b],
-      "F(x,y): ", f(2, X[0, b], X[1, b]))
+print("Generacion: 150")
+print("X: ", X[0, best], "Y: ", X[1, best],
+      "F(x,y): ", f(2, X[0, best], X[1, best]))
 grafica(2, X)
 
-algoritmoTLBO(3)
-b = mejorPosicion(3)
-print "Generacion: 20"
-print "Rastrigin function: "
+AlgoritmoEscuelaDeAbejas(3)
+best = mejorPosicion(3)
+print("Rastrigin function: ")
 # Imprime la mejor posición global de la última generación
-print("X: ", X[0, b], "Y: ", X[1, b],
-      "F(x,y): ", f(3, X[0, b], X[1, b]))
+print("Generacion: 150")
+print("X: ", X[0, best], "Y: ", X[1, best],
+      "F(x,y): ", f(3, X[0, best], X[1, best]))
 grafica(3, X)

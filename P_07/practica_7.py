@@ -184,10 +184,10 @@ Po = POBLACION - Pf  # Abejas observadoras
 
 X = np.zeros((2, Pf))  # Fuentes de Alimento
 li = np.zeros(Pf)
-apt = np.zeros(POBLACION)   # inicializa arreglo de apritudes
+apt = np.zeros(POBLACION)   # inicializa arreglo de aptitudes
 
-xl = np.array([-5, -5])  # límite inferior
-xu = np.array([5, 5])  # Límite superior
+xl = np.array([-10, -10])  # límite inferior
+xu = np.array([10, 10])  # Límite superior
 
 
 def inicializa():
@@ -248,7 +248,7 @@ def AlgoritmoABC(num):
             print "Generacion: ", i
             grafica(num, X)  # Grafíca cada 75 Generaciones
 
-
+"""
 AlgoritmoABC(1)
 best = mejorPosicion(1)
 print "Griewank function: "
@@ -266,7 +266,7 @@ print "Sphere function: "
 print "Generacion: 150"
 print("X: ", X[0, best], "Y: ", X[1, best],
       "F(x,y): ", f(2, X[0, best], X[1, best]))
-grafica(2, X)
+grafica(2, X)"""
 
 AlgoritmoABC(3)
 best = mejorPosicion(3)
